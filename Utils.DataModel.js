@@ -9,10 +9,10 @@
      * @param metadata Array Column metadata
      */
     var DataModel = function (data, metadata) {
-       if (Utils.isObject(data) && !Utils.isEmptyObject(data))
+       if (Utils.isArray(data))
          this.setData(data);
 
-       if (Utils.isObject(metadata) && !Utils.isEmptyObject(metadata))
+       if (Utils.isArray(metadata))
          this.setColumnMetadata(metadata);
     };
 
