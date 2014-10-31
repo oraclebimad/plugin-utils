@@ -23,6 +23,7 @@
      */
     DataModel.prototype.setColumnMetadata = function (meta) {
       var metaData = {};
+      var numericColumns = [];
       meta.forEach(function (column) {
         var field = column.field;
         var last;
@@ -31,7 +32,10 @@
         last = field.indexOf(':');
         last = last > 0 ? last + 1 : field.length;
         column.label = field.slice(0, last);
+        if (column.fieldType === 'measure')
+          numericColumns.push(column.name);
       });
+      this.numericColumns = numericColumns;
       this.metaData = meta;
       this.indexedMetaData = metaData;
       return this;
@@ -97,11 +101,11 @@
      */
     DataModel.prototype.nest = function () {
       var nest = d3.nest();
+      var numeric = {};
       var root = {
         key: 'root',
       };
       var nested;
-
 
       this.columnOrder.forEach(function (column) {
          nest.key(function (node) {
@@ -110,19 +114,27 @@
       });
 
       //Create this object dinamically based on the numeric columns
-      nest.rollup(function (leaves) {
-        return {
-          size: d3.sum(leaves, function (node) { return node.size; }),
-          color: d3.sum(leaves, function (node) { return node.size; })
+      this.numericColumns.forEach(function (column) {
+        numeric[column] = function (leaves) {
+          return d3.sum(leaves, function (node) { return node[column]; });
         };
+      });
+
+      nest.rollup(function (leaves) {
+        var rollup = {};
+        for (var key in numeric)
+          rollup[key] = numeric[key](leaves);
+
+        return rollup;
       });
 
       nested = nest.entries(this.indexedData);
 
 
       root.values = nested;
-      accumulate(root, 'size');
-      accumulate(root, 'color');
+      this.numericColumns.forEach(function (column) {
+        accumulate(root, column);
+      });
       removeLeaf(root);
 
       return root;
