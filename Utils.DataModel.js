@@ -24,6 +24,7 @@
     DataModel.prototype.setColumnMetadata = function (meta) {
       var metaData = {};
       var numericColumns = [];
+      var columns = [];
       meta.forEach(function (column) {
         var field = column.field;
         var last;
@@ -32,12 +33,14 @@
         last = field.indexOf(':');
         last = last > 0 ? last + 1 : field.length;
         column.label = field.slice(0, last);
+        columns.push(column.name);
         if (column.fieldType === 'measure')
           numericColumns.push(column.name);
       });
       this.numericColumns = numericColumns;
       this.metaData = meta;
       this.indexedMetaData = metaData;
+      this.columns = columns;
       return this;
     };
 
@@ -47,7 +50,6 @@
      * @return DataModel
      */
     DataModel.prototype.setData = function (data) {
-      this.columnOrder = this.columns = data.shift();
       this.data = data;
       return this;
     };
