@@ -802,11 +802,26 @@
                 $.error("EventBus initialized without el");
             }
             this.$el = $(o.el);
+            this.events = {};
         }
         _.mixin(EventBus.prototype, {
             trigger: function(type) {
                 var args = [].slice.call(arguments, 1);
+                var events = this.events[type];
+                var self = this;
                 this.$el.trigger(namespace + type, args);
+                if (events && events.length) {
+                  events.forEach(function (callback) {
+                    callback.apply(self, args);
+                  });
+                }
+            },
+            on: function (type, callback) {
+              if (!(type in this.events)) {
+                this.events[type] = [];
+              }
+              this.events[type].push(callback);
+              return this;
             }
         });
         return EventBus;
@@ -1692,6 +1707,7 @@
     (function() {
         "use strict";
         var Autocomplete = function (input, options, datasets) {
+          this.eventBus;
           this.typeaheadKey = "ttTypeahead";
           datasets = _.isArray(datasets) ? datasets : [].slice.call(arguments, 2);
           this.options = options || {};
@@ -1701,7 +1717,7 @@
           this.input = jQuery(input);
           this.typeahead = new Typeahead({
             input: this.input,
-            eventBus: new EventBus({
+            eventBus: this.eventBus = new EventBus({
                 el: this.input
             }),
             withHint: _.isUndefined(options.hint) ? true : !!options.hint,
@@ -1710,6 +1726,11 @@
             datasets: datasets
           });
         };
+
+        Autocomplete.prototype.on = function (event, callback) {
+          this.eventBus.on(event, callback);
+        };
+
 
         Autocomplete.prototype.open = function () {
           this.typeahead.open();
