@@ -2,20 +2,23 @@
   'use strict';
   /* jshint unused:true, jquery:true, curly:false, browser:true */
   var formats = {
-    raw: function (value) { return value; },
-    currency: function (value, opts) {
+    raw: function () { return d3.format(''); },
+    currency: function (opts) {
       opts = Utils.isObject(opts) ? opts : {};
       if (!opts.symbol)
         opts.symbol = '$';
-      return otps.symbol + ' ' + formats.thousands(value, opts);
+      var format = formats.thousands(opts);
+      return function (value) {
+        return opts.symbol + ' ' + format(value);
+      };
     },
-    thousands: function (value, opts) {
+    thousands: function (opts) {
       var format = ',';
       opts = Utils.isObject(opts) ? opts : {};
       if (opts.decimals)
         format += '2.';
       format += 'f';
-      return d3.format(format)(value);
+      return d3.format(format);
     }
   };
   var Utils = {
@@ -44,10 +47,10 @@
     isObject: function (obj) {
       return jQuery.isPlainObject(obj);
     },
-    format: function (number, format, opts) {
+    format: function (format, opts) {
       if (!(format in formats))
         format = 'raw';
-      return formats[format](number, opts);
+      return formats[format](opts);
     },
     isEmptyObject: jQuery.isEmptyObject,
     isArray: jQuery.isArray,
