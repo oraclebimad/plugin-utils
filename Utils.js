@@ -2,7 +2,13 @@
   'use strict';
   /* jshint unused:true, jquery:true, curly:false, browser:true */
   var formats = {
-    raw: function () { return d3.format(''); },
+    raw: function () { 
+      var decimals = d3.format('2.f');
+      var integers = d3.format('');
+      return function (value) {
+        return (value + '').split('.').length > 1 ? decimals(value) : integers(value);
+      };
+    },
     currency: function (opts) {
       opts = Utils.isObject(opts) ? opts : {};
       if (!opts.symbol)
