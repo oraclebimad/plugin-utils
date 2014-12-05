@@ -3,7 +3,7 @@
   /* jshint unused:true, jquery:true, curly:false, browser:true */
   var formats = {
     raw: function () { 
-      var decimals = d3.format('2.f');
+      var decimals = d3.format('.2f');
       var integers = d3.format('');
       return function (value) {
         return (value + '').split('.').length > 1 ? decimals(value) : integers(value);
@@ -22,7 +22,7 @@
       var format = ',';
       opts = Utils.isObject(opts) ? opts : {};
       if (opts.decimals)
-        format += '2.';
+        format += '.2';
       format += 'f';
       return d3.format(format);
     }
