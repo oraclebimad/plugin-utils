@@ -58,6 +58,9 @@
         format = 'raw';
       return formats[format](opts);
     },
+    capitalize: function (text) {
+      return (text + '').toLowerCase().replace(/_/g, ' ');
+    },
     isEmptyObject: jQuery.isEmptyObject,
     isArray: jQuery.isArray,
     extend: jQuery.extend
