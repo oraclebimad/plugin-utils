@@ -1,146 +1,194 @@
-  (function (main) {
-    'use strict';
-    /* jshint unused:true, jquery:true, curly:false */
-    /* global Utils */
+(function (main) {
+  'use strict';
+  /* jshint unused:true, jquery:true, curly:false */
+  /* global Utils */
 
-    /**
-     * Creates a new data model to manipulate the data
-     * @param data Array Array of arrays
-     * @param metadata Array Column metadata
-     */
-    var DataModel = function (data, metadata) {
-       if (Utils.isArray(data))
-         this.setData(data);
+  /**
+   * Creates a new data model to manipulate the data
+   * @param data Array Array of arrays
+   * @param metadata Array Column metadata
+   */
+  var DataModel = function (data, metadata) {
+     if (Utils.isArray(data))
+       this.setData(data);
 
-       if (Utils.isArray(metadata))
-         this.setColumnMetadata(metadata);
-    };
+     if (Utils.isArray(metadata))
+       this.setColumnMetadata(metadata);
 
-    /**
-     * Sets the column metadata. This information is given as a parameter to the BIMAD Plugin
-     * @param metadata Array Column metadata
-     * @return DataModel
-     */
-    DataModel.prototype.setColumnMetadata = function (meta) {
-      var metaData = {};
-      var numericColumns = [];
-      var columns = [];
-      meta.forEach(function (column) {
-        var field = column.field;
-        var last;
-        metaData[column.name] = column;
-        field = field.slice(field.lastIndexOf('/') + 1);
-        last = field.indexOf(':');
-        last = last > 0 ? last + 1 : field.length;
-        column.label = field.slice(0, last);
-        columns.push(column.name);
-        if (column.fieldType === 'measure')
-          numericColumns.push(column.name);
+     this.sort = {
+       byKey: false,
+       byValue: false,
+       comparator: d3.descending
+     };
+  };
+
+  /**
+   * Sets the column metadata. This information is given as a parameter to the BIMAD Plugin
+   * @param metadata Array Column metadata
+   * @return DataModel
+   */
+  DataModel.prototype.setColumnMetadata = function (meta) {
+    var metaData = {};
+    var numericColumns = [];
+    var columns = [];
+    meta.forEach(function (column) {
+      var field = column.field;
+      var last;
+      metaData[column.name] = column;
+      field = field.slice(field.lastIndexOf('/') + 1);
+      last = field.indexOf(':');
+      last = last > 0 ? last + 1 : field.length;
+      column.label = field.slice(0, last);
+      columns.push(column.name);
+      if (column.fieldType === 'measure')
+        numericColumns.push(column.name);
+    });
+    this.numericColumns = numericColumns;
+    this.metaData = meta;
+    this.indexedMetaData = metaData;
+    this.columns = columns;
+    return this;
+  };
+
+  /**
+   * Sets the data to work on
+   * @param data Array
+   * @return DataModel
+   */
+  DataModel.prototype.setData = function (data) {
+    this.data = data;
+    return this;
+  };
+
+  /**
+   * Indexes the data with the column metadata information
+   * @return DataModel
+   */
+  DataModel.prototype.indexColumns = function () {
+    var indexed = [];
+    var columns = this.columns;
+    this.data.forEach(function (row) {
+      var indexedRow = {};
+      row.forEach(function (value, index) {
+        indexedRow[columns[index]] = value;
       });
-      this.numericColumns = numericColumns;
-      this.metaData = meta;
-      this.indexedMetaData = metaData;
-      this.columns = columns;
-      return this;
-    };
+      indexed.push(indexedRow);
+    });
+    this.indexedData = indexed;
+    return this;
+  };
 
-    /**
-     * Sets the data to work on
-     * @param data Array
-     * @return DataModel
-     */
-    DataModel.prototype.setData = function (data) {
-      this.data = data;
-      return this;
-    };
+  /**
+   * Sets the colum order to create the hierarchical object.
+   * All numeric columns will be discarded and placed at the end of the hierarchy
+   * @param columns Array
+   * @returns DataModel
+   */
+  DataModel.prototype.setColumnOrder = function (columns) {
+    var columnOrder = [];
+    if (!Utils.isArray(columns) || !columns.length) {
+      throw new Error('Incorrect column order definition');
+    }
+    // first add the string columns that come in the ordered array
+    columns.forEach(function (column) {
+      if (column in this.indexedMetaData && this.indexedMetaData[column].fieldType !== 'measure')
+        columnOrder.push(column);
+    }, this);
+    //Then add any missing string columns to the end of the array
+    this.metaData.forEach(function (column) {
+      if (columns.indexOf(column.name) === -1 && column.fieldType !== 'measure')
+        columnOrder.push(column.name);
+    });
+    this.columnOrder = columnOrder;
+    return this;
+  };
 
-    /**
-     * Indexes the data with the column metadata information
-     * @return DataModel
-     */
-    DataModel.prototype.indexColumns = function () {
-      var indexed = [];
-      var columns = this.columns;
-      this.data.forEach(function (row) {
-        var indexedRow = {};
-        row.forEach(function (value, index) {
-          indexedRow[columns[index]] = value;
-        });
-        indexed.push(indexedRow);
-      });
-      this.indexedData = indexed;
-      return this;
-    };
+  /**
+   * Sets the sorting method by keys
+   * @returns DataModel
+   */
+  DataModel.prototype.sortByKey = function () {
+    this.sort.byKey = true;
+    return this;
+  };
 
-    /**
-     * Sets the colum order to create the hierarchical object.
-     * All numeric columns will be discarded and placed at the end of the hierarchy
-     * @param columns Array
-     * @returns DataModel
-     */
-    DataModel.prototype.setColumnOrder = function (columns) {
-      var columnOrder = [];
-      if (!Utils.isArray(columns) || !columns.length) {
-        throw new Error('Incorrect column order definition');
-      }
-      // first add the string columns that come in the ordered array
-      columns.forEach(function (column) {
-        if (column in this.indexedMetaData && this.indexedMetaData[column].fieldType !== 'measure')
-          columnOrder.push(column);
-      }, this);
-      //Then add any missing string columns to the end of the array
-      this.metaData.forEach(function (column) {
-        if (columns.indexOf(column.name) === -1 && column.fieldType !== 'measure')
-          columnOrder.push(column.name);
-      });
-      this.columnOrder = columnOrder;
-      return this;
-    };
+  /**
+   * Sets the sorting method by values
+   * @returns DataModel
+   */
+  DataModel.prototype.sortByValue = function () {
+    this.sort.byValue = true;
+    return this;
+  };
 
-    /**
-     * Creates the hierarchical object based on the column order
-     * @return Object
-     */
-    DataModel.prototype.nest = function () {
-      var nest = d3.nest();
-      var numeric = {};
-      var root = {
-        key: 'root',
+  /**
+   * Sets the comparator method to ascending
+   * @returns DataModel
+   */
+  DataModel.prototype.asc = function () {
+    this.sort.comparator = d3.ascending;
+    return this;
+  };
+
+  /**
+   * Sets the sorting method descending
+   * @returns DataModel
+   */
+  DataModel.prototype.desc = function () {
+    this.sort.comparator = d3.descending;
+    return this;
+  };
+
+  /**
+   * Creates the hierarchical object based on the column order
+   * @return Object
+   */
+  DataModel.prototype.nest = function () {
+    var nest = d3.nest();
+    var numeric = {};
+    var root = {
+      key: 'root',
+    };
+    var nested;
+
+    this.columnOrder.forEach(function (column) {
+       nest.key(function (node) {
+          return node[column];
+       });
+    });
+
+    //Create this object dinamically based on the numeric columns
+    this.numericColumns.forEach(function (column) {
+      numeric[column] = function (leaves) {
+        return d3.sum(leaves, function (node) { return node[column]; });
       };
-      var nested;
+    });
 
-      this.columnOrder.forEach(function (column) {
-         nest.key(function (node) {
-            return node[column];
-         });
-      });
+    nest.rollup(function (leaves) {
+      var rollup = {};
+      for (var key in numeric)
+        rollup[key] = numeric[key](leaves);
 
-      //Create this object dinamically based on the numeric columns
-      this.numericColumns.forEach(function (column) {
-        numeric[column] = function (leaves) {
-          return d3.sum(leaves, function (node) { return node[column]; });
-        };
-      });
+      return rollup;
+    });
 
-      nest.rollup(function (leaves) {
-        var rollup = {};
-        for (var key in numeric)
-          rollup[key] = numeric[key](leaves);
+    if (this.sort.byKey)
+      nest.sortKeys(this.sort.comparator);
 
-        return rollup;
-      });
+    if (this.sort.byValue)
+      nest.sortValues(this.sort.comparator);
 
-      nested = nest.entries(this.indexedData);
+    nested = nest.entries(this.indexedData);
 
 
-      root.values = nested;
-      this.numericColumns.forEach(function (column) {
-        accumulate(root, column);
-      });
-      removeLeaf(root);
+    root.values = nested;
+    this.numericColumns.forEach(function (column) {
+      accumulate(root, column);
+    });
+    removeLeaf(root);
 
-      return root;
-    };
+    return root;
+  };
 
   function accumulate (node, key) {
     if (Utils.isObject(node) && !Utils.isEmptyObject(node)) {
