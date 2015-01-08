@@ -16,8 +16,7 @@
        this.setColumnMetadata(metadata);
 
      this.sort = {
-       byKey: false,
-       byValue: false,
+       by: null,
        comparator: d3.descending
      };
   };
@@ -107,17 +106,9 @@
    * Sets the sorting method by keys
    * @returns DataModel
    */
-  DataModel.prototype.sortByKey = function () {
-    this.sort.byKey = true;
-    return this;
-  };
-
-  /**
-   * Sets the sorting method by values
-   * @returns DataModel
-   */
-  DataModel.prototype.sortByValue = function () {
-    this.sort.byValue = true;
+  DataModel.prototype.sortBy = function (key) {
+    if (key in this.indexedMetaData)
+      this.sort.by = key;
     return this;
   };
 
@@ -172,14 +163,7 @@
       return rollup;
     });
 
-    if (this.sort.byKey)
-      nest.sortKeys(this.sort.comparator);
-
-    if (this.sort.byValue)
-      nest.sortValues(this.sort.comparator);
-
     nested = nest.entries(this.indexedData);
-
 
     root.values = nested;
     this.numericColumns.forEach(function (column) {
@@ -187,8 +171,32 @@
     });
     removeLeaf(root);
 
+    if (this.sort.by)
+      sort(root.values, this.sort.by, this.sort.comparator);
+
     return root;
   };
+
+  function sort (data, key, order) {
+    if (!Utils.isArray(data))
+      return false;
+
+    if (typeof order !== 'function')
+      order = d3.descending;
+
+    data.sort(function (nodeA, nodeB) {
+      return order(nodeA[key], nodeB[key]);
+    });
+
+    //means we have a hierarchical data of more than one level of depth
+    if (Utils.isArray(data[0].values)) {
+      data.forEach(function (node) {
+        sort(node.values, key, order);
+      });
+    }
+
+    return true;
+  }
 
   function accumulate (node, key) {
     if (Utils.isObject(node) && !Utils.isEmptyObject(node)) {
