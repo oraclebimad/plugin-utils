@@ -221,6 +221,7 @@
   if (!('Utils' in main))
     main.Utils = {};
 
-  Utils.DataModel = DataModel;
+  if (!('DataModel' in main.Utils))
+    main.Utils.DataModel = DataModel;
 
 })(this);

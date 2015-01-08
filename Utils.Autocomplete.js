@@ -1755,7 +1755,7 @@
         if (!('Utils' in main))
           main.Utils = {};
 
-        main.Utils.Autocomplete = Autocomplete;
-
+        if (!('Autocomplete' in main.Utils))
+          main.Utils.Autocomplete = Autocomplete;
     })();
 })(window.jQuery, this);
