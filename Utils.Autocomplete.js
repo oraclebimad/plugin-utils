@@ -1731,6 +1731,11 @@
           this.eventBus.on(event, callback);
         };
 
+        Autocomplete.prototype.clear = function() {
+            this.typeahead.$node.find('input').val('');
+            this.val('');
+            return this;
+        };
 
         Autocomplete.prototype.open = function () {
           this.typeahead.open();
@@ -1741,7 +1746,7 @@
         };
 
         Autocomplete.prototype.val = function (newVal) {
-          if (newVal) {
+          if (typeof newVal !== 'undefined') {
             this.typeahead.setVal(newVal);
             return this;
           }
