@@ -2,7 +2,7 @@
   'use strict';
   /* jshint unused:true, jquery:true, curly:false, browser:true */
   var formats = {
-    raw: function () { 
+    raw: function () {
       var decimals = d3.format('.2f');
       var integers = d3.format('');
       return function (value) {
