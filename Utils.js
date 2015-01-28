@@ -23,6 +23,8 @@
       opts = Utils.isObject(opts) ? opts : {};
       if (opts.decimals)
         format += '.2';
+      if (opts.si)
+        format = 's';
       format += 'f';
       return d3.format(format);
     }
