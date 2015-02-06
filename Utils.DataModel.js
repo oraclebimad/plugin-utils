@@ -19,6 +19,7 @@
        by: null,
        comparator: d3.descending
      };
+     this.columnOrder = [];
   };
 
   /**
@@ -85,19 +86,21 @@
    */
   DataModel.prototype.setColumnOrder = function (columns) {
     var columnOrder = [];
-    if (!Utils.isArray(columns) || !columns.length) {
-      throw new Error('Incorrect column order definition');
+    if (!Utils.isArray(columns))
+      columns = [];
+
+    if (columns.length > 0) {
+      // first add the string columns that come in the ordered array
+      columns.forEach(function (column) {
+        if (column in this.indexedMetaData && this.indexedMetaData[column].fieldType !== 'measure')
+          columnOrder.push(column);
+      }, this);
+      //Then add any missing string columns to the end of the array
+      this.metaData.forEach(function (column) {
+        if (columns.indexOf(column.name) === -1 && column.fieldType !== 'measure')
+          columnOrder.push(column.name);
+      });
     }
-    // first add the string columns that come in the ordered array
-    columns.forEach(function (column) {
-      if (column in this.indexedMetaData && this.indexedMetaData[column].fieldType !== 'measure')
-        columnOrder.push(column);
-    }, this);
-    //Then add any missing string columns to the end of the array
-    this.metaData.forEach(function (column) {
-      if (columns.indexOf(column.name) === -1 && column.fieldType !== 'measure')
-        columnOrder.push(column.name);
-    });
     this.columnOrder = columnOrder;
     return this;
   };
