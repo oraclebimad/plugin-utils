@@ -46,7 +46,7 @@
       var field = column.field;
       var last;
       metaData[column.name] = column;
-      column.label = getFieldName(column);
+      column.label = getFieldName(column.field);
       columns.push(column.name);
       if (column.fieldType === 'measure')
         numericColumns.push(column.name);
