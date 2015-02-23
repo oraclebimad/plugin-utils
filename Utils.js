@@ -55,6 +55,9 @@
     isObject: function (obj) {
       return jQuery.isPlainObject(obj);
     },
+    isFunction: function (method) {
+      return typeof method === 'function';
+    },
     format: function (format, opts) {
       if (!(format in formats))
         format = 'raw';
