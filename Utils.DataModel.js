@@ -14,6 +14,42 @@
     }
     return name;
   }
+
+  var Parser = {
+    date: function (data) {
+      var date = new Date(data);
+      var year = date.getFullYear().toString();
+      var month = date.getMonth().toString();
+      return {
+        date: date,
+        year: year,
+        month: month,
+        yearmonth: year + month
+      };
+    },
+    parse: function (data) {
+      return data;
+    }
+  };
+
+  var Postprocessors = {
+    date: function (node, index, length, meta) {
+      //extend the object by parsing the date
+      var date;
+      var month = 0;
+      var day = 1;
+      if (meta.aggregate === 'year') {
+        date = new Date(node.key, month, day);
+      } else if(meta.aggregate === 'yearmonth') {
+        month = (length - 1) === index ? 11 : node.key.substring(4);
+        day = (length - 1) === index ? 31 : 1;
+        date = new Date(node.key.substring(0, 4), node.key.substring(4), day);
+      }
+      node[meta.name] = date;
+    }
+  };
+
+
   /**
    * Creates a new data model to manipulate the data
    * @param data Array Array of arrays
@@ -30,6 +66,7 @@
        by: null,
        comparator: d3.descending
      };
+     this.aggregators = {};
      this.columnOrder = [];
   };
 
@@ -47,6 +84,7 @@
       var last;
       metaData[column.name] = column;
       column.label = getFieldName(column.field);
+      column.parser = (column.dataType in Parser) ? column.dataType : 'parse';
       columns.push(column.name);
       if (column.fieldType === 'measure')
         numericColumns.push(column.name);
@@ -75,10 +113,14 @@
   DataModel.prototype.indexColumns = function () {
     var indexed = [];
     var columns = this.columns;
+    var metadata = this.indexedMetaData;
     this.data.forEach(function (row) {
       var indexedRow = {};
       row.forEach(function (value, index) {
-        indexedRow[columns[index]] = value;
+        var name = columns[index];
+        var type = metadata[name].parser;
+        indexedRow[name] = value;
+        indexedRow[name + '_parsed'] = Parser[metadata[name].parser](value);
       });
       indexed.push(indexedRow);
     });
@@ -146,17 +188,23 @@
    * @return Object
    */
   DataModel.prototype.nest = function () {
+    var aggregators = this.aggregators;
+    var meta = this.indexedMetaData;
     var nest = d3.nest();
     var numeric = {};
+    var columnTypes = [];
     var root = {
       key: 'root',
     };
     var nested;
 
     this.columnOrder.forEach(function (column) {
-       nest.key(function (node) {
-          return node[column];
-       });
+      var columnMeta = meta[column];
+      var aggregator = aggregators[columnMeta.dataType];
+      columnTypes.push(columnMeta);
+      nest.key(function (node) {
+        return aggregator ? aggregator(node, column) : node[column];
+      });
     });
 
     //Create this object dinamically based on the numeric columns
@@ -180,12 +228,32 @@
     this.numericColumns.forEach(function (column) {
       accumulate(root, column);
     });
-    removeLeaf(root);
+    postProcess(root, columnTypes);
 
     if (this.sort.by)
       sort(root.values, this.sort.by, this.sort.comparator);
 
     return root;
+  };
+
+  DataModel.prototype.dateAggregateBy = function (aggregate) {
+    var aggregators = {'year': true, 'month': true, 'yearmonth': true};
+    var key;
+    var column;
+    if (!(aggregate in aggregators))
+      aggregate = 'year';
+
+    for (key in this.indexedMetaData) {
+      column = this.indexedMetaData[key];
+      if (column.dataType === 'date')
+        column.aggregate = aggregate;
+    }
+    //create the aggregator and store it for later use
+    this.aggregators.date = function (data, column) {
+      return data[column + '_parsed'][aggregate];
+    };
+
+    return this;
   };
 
   function sort (data, key, order) {
@@ -219,10 +287,14 @@
     }
   }
 
-  function removeLeaf (data) {
+  function postProcess (data, columns) {
     if (data.values && Utils.isArray(data.values)) {
-      data.values.forEach(function (node) {
-         removeLeaf(node);
+      var valuesLength = data.values.length;
+      var column = columns.shift();
+      data.values.forEach(function (node, index) {
+        if (column && column.dataType in Postprocessors)
+          Postprocessors[column.dataType](node, index, valuesLength, column);
+        postProcess(node, columns);
       });
     } else if (data.values) {
       delete data.values;
