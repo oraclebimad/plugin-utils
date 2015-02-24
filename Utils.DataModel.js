@@ -172,7 +172,7 @@
    * @returns DataModel
    */
   DataModel.prototype.asc = function () {
-    this.sort.comparator = d3.ascending;
+    this.sort.comparator = Utils.ascending;
     return this;
   };
 
@@ -181,7 +181,7 @@
    * @returns DataModel
    */
   DataModel.prototype.desc = function () {
-    this.sort.comparator = d3.descending;
+    this.sort.comparator = Utils.descending;
     return this;
   };
 
