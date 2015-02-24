@@ -30,6 +30,9 @@
     }
   };
   var Utils = {
+    isDesigner: function () {
+      return xdo && xdo.app && xdo.app.designer && xdo.app.designer.DesignerApplication;
+    },
     proxy: function (fn, thisArg) {
       return function () {
         return fn.apply(thisArg, Utils.toArray(arguments));
