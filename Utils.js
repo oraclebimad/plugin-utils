@@ -66,14 +66,14 @@
     capitalize: function (text) {
       return (text + '').toLowerCase().replace(/_/g, ' ');
     },
-    ascendent: function (a, b) {
+    ascending: function (a, b) {
       if (!isNaN(a) && !isNaN(b))
-        return d3.ascendent(a, b);
+        return d3.ascending(a, b);
       return (a + '').localeCompare(b);
     },
-    descendent: function (a, b) {
+    descending: function (a, b) {
       if (!isNaN(a) && !isNaN(b))
-        return d3.descendent(a, b);
+        return d3.descending(a, b);
       return (b + '').localeCompare(a);
     },
     isEmptyObject: jQuery.isEmptyObject,
