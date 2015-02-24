@@ -83,7 +83,9 @@
       var field = column.field;
       var last;
       metaData[column.name] = column;
-      column.label = getFieldName(column.field);
+      if (typeof column.label === 'undefined')
+        column.label = getFieldName(column.field);
+
       column.parser = (column.dataType in Parser) ? column.dataType : 'parse';
       columns.push(column.name);
       if (column.fieldType === 'measure')
