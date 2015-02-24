@@ -66,6 +66,16 @@
     capitalize: function (text) {
       return (text + '').toLowerCase().replace(/_/g, ' ');
     },
+    ascendent: function (a, b) {
+      if (!isNaN(a) && !isNaN(b))
+        return d3.ascendent(a, b);
+      return (a + '').localeCompare(b);
+    },
+    descendent: function (a, b) {
+      if (!isNaN(a) && !isNaN(b))
+        return d3.descendent(a, b);
+      return (b + '').localeCompare(a);
+    },
     isEmptyObject: jQuery.isEmptyObject,
     isArray: jQuery.isArray,
     extend: jQuery.extend
