@@ -24,7 +24,7 @@
       if (opts.decimals)
         format += '.2';
       if (opts.si)
-        format = 's';
+        format += 's';
       format += 'f';
       return d3.format(format);
     }
