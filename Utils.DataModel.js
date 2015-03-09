@@ -95,6 +95,7 @@
     this.metaData = meta;
     this.indexedMetaData = metaData;
     this.columns = columns;
+    this.doAggregate = true;
     return this;
   };
 
@@ -193,7 +194,7 @@
     var aggregators = this.aggregators;
     var meta = this.indexedMetaData;
     var nest = d3.nest();
-    var numeric = {};
+    var rollups = {};
     var columnTypes = [];
     var root = {
       key: 'root',
@@ -209,20 +210,22 @@
       });
     });
 
-    //Create this object dinamically based on the numeric columns
-    this.numericColumns.forEach(function (column) {
-      numeric[column] = function (leaves) {
-        return d3.sum(leaves, function (node) { return node[column]; });
-      };
-    });
+    if (this.doAggregate) {
+      //Create this object dinamically based on the numeric columns
+      this.numericColumns.forEach(function (column) {
+        rollups[column] = function (leaves) {
+          return d3.sum(leaves, function (node) { return node[column]; });
+        };
+      });
 
-    nest.rollup(function (leaves) {
-      var rollup = {};
-      for (var key in numeric)
-        rollup[key] = numeric[key](leaves);
+      nest.rollup(function (leaves) {
+        var rollup = {};
+        for (var key in rollups)
+          rollup[key] = rollups[key](leaves);
 
-      return rollup;
-    });
+        return rollup;
+      });
+    }
 
     nested = nest.entries(this.indexedData);
 
@@ -238,7 +241,15 @@
     return root;
   };
 
-  DataModel.prototype.dateAggregateBy = function (aggregate) {
+  DataModel.prototype.aggregate = function (aggregate) {
+    if (typeof aggregate === 'undefined')
+      return this.doAggregate;
+
+    this.doAggregate = typeof aggregate === 'boolean' ? aggregate : !!aggregate;
+    return this;
+  };
+
+  DataModel.prototype.dateGroupBy = function (aggregate) {
     var aggregators = {'year': true, 'month': true, 'yearmonth': true};
     var key;
     var column;
@@ -263,7 +274,7 @@
       return false;
 
     if (typeof order !== 'function')
-      order = d3.descending;
+      order = Utils.descending;
 
     data.sort(function (nodeA, nodeB) {
       return order(nodeA[key], nodeB[key]);
@@ -285,7 +296,7 @@
         node[key] = node.values.reduce(function (prev, value) {
           return prev + accumulate(value, key);
         }, 0) :
-        node[key] = node.values[key];
+        node[key] = node.values ? node.values[key] : node[key];
     }
   }
 
