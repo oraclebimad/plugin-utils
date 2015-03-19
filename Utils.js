@@ -71,12 +71,12 @@
     },
     ascending: function (a, b) {
       if (!isNaN(a) && !isNaN(b))
-        return d3.ascending(a, b);
+        return d3.ascending(+a, +b);
       return (a + '').localeCompare(b);
     },
     descending: function (a, b) {
       if (!isNaN(a) && !isNaN(b))
-        return d3.descending(a, b);
+        return d3.descending(+a, +b);
       return (b + '').localeCompare(a);
     },
     isEmptyObject: jQuery.isEmptyObject,
