@@ -41,6 +41,9 @@
     toArray: function (obj) {
       return Array.prototype.slice.call(obj);
     },
+    stringToBoolean: function(obj){
+      return typeof obj === 'boolean' ? obj : obj.toLowerCase() === "true";
+    },
     deferred: jQuery.Deferred,
     pluck: function (data, key) {
       var values = [];
