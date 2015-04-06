@@ -133,12 +133,18 @@
 
   /**
    * Sets the colum order to create the hierarchical object.
-   * All numeric columns will be discarded and placed at the end of the hierarchy
+   * All numeric columns will be discarded and placed at the end of the hierarchy.
+   * If second argument is specified as false the nest method will only include the fields specified on the columns parameter
+   * If second argument is missing or true, then the hierarchical data will include first the columns specified, and then the
+   * rest of te string columns.
    * @param columns Array
+   * @param nestExtras Boolean Default true, will include extra string columns in the hierarchy
    * @returns DataModel
    */
-  DataModel.prototype.setColumnOrder = function (columns) {
+  DataModel.prototype.setColumnOrder = function (columns, nestExtras) {
+    nestExtras = typeof nestExtras === 'boolean' ? nestExtras : true;
     var columnOrder = [];
+    var extraColumns = nestExtras ? this.metaData.slice() : [];
     if (!Utils.isArray(columns))
       columns = [];
 
@@ -149,7 +155,7 @@
           columnOrder.push(column);
       }, this);
       //Then add any missing string columns to the end of the array
-      this.metaData.forEach(function (column) {
+      extraColumns.forEach(function (column) {
         if (columns.indexOf(column.name) === -1 && column.fieldType !== 'measure')
           columnOrder.push(column.name);
       });
