@@ -27,6 +27,20 @@
         format += 's';
       format += 'f';
       return d3.format(format);
+    },
+    axis: function (formatter) {
+      if (!formatter || typeof formatter !== 'function')
+        formatter = String;
+
+      var suffixFormatter = d3.format('s');
+      return function (value) {
+        //Remove all non integer values
+        value = parseInt(value, 10);
+        var formatted = suffixFormatter(value);
+        var suffix = formatted.replace(/\d+/, '');
+        value = formatted.replace(/[^\d]+/, '');
+        return formatter(value) + suffix;
+      };
     }
   };
   var Utils = {
