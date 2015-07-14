@@ -1,7 +1,7 @@
 (function (main) {
   'use strict';
   /* jshint unused:true, jquery:true, curly:false */
-  /* global Utils */
+  /* global bimad */
 
   function getFieldName (field) {
     var last;
@@ -320,10 +320,13 @@
     }
   }
 
-  if (!('Utils' in main))
-    main.Utils = {};
+  if (!('bimad' in main))
+    main.bimad = {};
 
-  if (!('DataModel' in main.Utils))
-    main.Utils.DataModel = DataModel;
+  if (!('utils' in main.bimad))
+    main.bimad.utils = {};
+
+  if (!('DataModel' in main.bimad.utils))
+    main.bimad.utils.DataModel = DataModel;
 
 })(this);

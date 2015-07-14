@@ -10,7 +10,7 @@
       };
     },
     currency: function (opts) {
-      opts = Utils.isObject(opts) ? opts : {};
+      opts = utils.isObject(opts) ? opts : {};
       if (!opts.symbol)
         opts.symbol = '$';
       var format = formats.thousands(opts);
@@ -20,7 +20,7 @@
     },
     thousands: function (opts) {
       var format = ',';
-      opts = Utils.isObject(opts) ? opts : {};
+      opts = utils.isObject(opts) ? opts : {};
       if (opts.decimals)
         format += '.2';
       if (opts.si)
@@ -43,13 +43,13 @@
       };
     }
   };
-  var Utils = {
+  var utils = {
     isDesigner: function () {
       return xdo && xdo.app && xdo.app.designer && xdo.app.designer.DesignerApplication;
     },
     proxy: function (fn, thisArg) {
       return function () {
-        return fn.apply(thisArg, Utils.toArray(arguments));
+        return fn.apply(thisArg, utils.toArray(arguments));
       };
     },
     toArray: function (obj) {
@@ -61,7 +61,7 @@
     deferred: jQuery.Deferred,
     pluck: function (data, key) {
       var values = [];
-      if (Utils.isArray(data)) {
+      if (utils.isArray(data)) {
         values = data.map(function (value) {
           return value[key];
         });
@@ -101,8 +101,11 @@
     extend: jQuery.extend
   };
 
-  if ('Utils' in main)
-    Utils = Utils.extend(Utils, main.Utils);
+  if (!('bimad' in main))
+    main.bimad = {};
 
-  main.Utils = Utils;
+  if ('utils' in main.bimad)
+    utils = utils.extend(utils, main.bimad.utils);
+
+  main.bimad.utils = utils;
 })(this);

@@ -1757,10 +1757,13 @@
           this.typeahead.destroy();
         };
 
-        if (!('Utils' in main))
-          main.Utils = {};
+        if (!('bimad' in main))
+          main.bimad = {};
 
-        if (!('Autocomplete' in main.Utils))
-          main.Utils.Autocomplete = Autocomplete;
+        if (!('utils' in main.bimad))
+          main.bimad.utils = {};
+
+        if (!('Autocomplete' in main.bimad.utils))
+          main.bimad.utils.Autocomplete = Autocomplete;
     })();
 })(window.jQuery, this);
