@@ -56,10 +56,10 @@
    * @param metadata Array Column metadata
    */
   var DataModel = function (data, metadata) {
-     if (Utils.isArray(data))
+     if (bimad.utils.isArray(data))
        this.setData(data);
 
-     if (Utils.isArray(metadata))
+     if (bimad.utils.isArray(metadata))
        this.setColumnMetadata(metadata);
 
      this.sort = {
@@ -145,7 +145,7 @@
     nestExtras = typeof nestExtras === 'boolean' ? nestExtras : true;
     var columnOrder = [];
     var extraColumns = nestExtras ? this.metaData.slice() : [];
-    if (!Utils.isArray(columns))
+    if (!bimad.utils.isArray(columns))
       columns = [];
 
     if (columns.length > 0) {
@@ -179,7 +179,7 @@
    * @returns DataModel
    */
   DataModel.prototype.asc = function () {
-    this.sort.comparator = Utils.ascending;
+    this.sort.comparator = bimad.utils.ascending;
     return this;
   };
 
@@ -188,7 +188,7 @@
    * @returns DataModel
    */
   DataModel.prototype.desc = function () {
-    this.sort.comparator = Utils.descending;
+    this.sort.comparator = bimad.utils.descending;
     return this;
   };
 
@@ -276,18 +276,18 @@
   };
 
   function sort (data, key, order) {
-    if (!Utils.isArray(data))
+    if (!bimad.utils.isArray(data))
       return false;
 
     if (typeof order !== 'function')
-      order = Utils.descending;
+      order = bimad.utils.descending;
 
     data.sort(function (nodeA, nodeB) {
       return order(nodeA[key], nodeB[key]);
     });
 
     //means we have a hierarchical data of more than one level of depth
-    if (Utils.isArray(data[0].values)) {
+    if (bimad.utils.isArray(data[0].values)) {
       data.forEach(function (node) {
         sort(node.values, key, order);
       });
@@ -297,8 +297,8 @@
   }
 
   function accumulate (node, key) {
-    if (Utils.isObject(node) && !Utils.isEmptyObject(node)) {
-      return (Utils.isArray(node.values)) ?
+    if (bimad.utils.isObject(node) && !bimad.utils.isEmptyObject(node)) {
+      return (bimad.utils.isArray(node.values)) ?
         node[key] = node.values.reduce(function (prev, value) {
           return prev + accumulate(value, key);
         }, 0) :
@@ -307,7 +307,7 @@
   }
 
   function postProcess (data, columns) {
-    if (data.values && Utils.isArray(data.values)) {
+    if (data.values && bimad.utils.isArray(data.values)) {
       var valuesLength = data.values.length;
       var column = columns.shift();
       data.values.forEach(function (node, index) {
